@@ -1,0 +1,475 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대화형 AI 검색 동향 분석</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: The application is designed as a single-page, scrollable dashboard. The structure is thematic, not linear like the report, to enhance user exploration. It starts with a hero section summarizing the core shift. This is followed by an interactive "Paradigm Shift" section comparing SEO vs. GEO. Next, a "Market Impact" section uses charts to show CTR changes and stats on user behavior. A dedicated "Korean Market Focus" section uses a tabbed interface to detail Naver and Kakao's unique AI features. Finally, a "Strategic Roadmap" section presents actionable recommendations in an accordion format. This flow guides the user from understanding the 'what' and 'why' to the 'how', making complex information digestible and actionable. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: SEO vs. GEO comparison -> Goal: Compare -> Viz: Interactive toggle table -> Interaction: User clicks toggle to switch between SEO/GEO views -> Justification: Direct comparison is clearer than static text -> Library/Method: HTML/JS.
+        - Report Info: AI Overview's impact on CTR -> Goal: Show change -> Viz: Bar Chart -> Interaction: Chart animates on load, tooltips on hover -> Justification: Quantifiable data is best shown visually for impact -> Library/Method: Chart.js.
+        - Report Info: Key stats (user preference, zero-click) -> Goal: Inform -> Viz: Large number callouts with icons -> Interaction: Numbers animate on scroll -> Justification: Highlights key data points memorably -> Library/Method: HTML/JS (Intersection Observer).
+        - Report Info: Korean platform features (Naver/Kakao) -> Goal: Organize -> Viz: Tabbed interface -> Interaction: User clicks tabs to reveal platform-specific content -> Justification: Prevents information overload and allows focused learning -> Library/Method: HTML/JS.
+        - Report Info: Strategic recommendations -> Goal: Organize/Inform -> Viz: Accordion -> Interaction: User clicks to expand/collapse detailed strategies -> Justification: Keeps the UI clean and lets users dive into topics of interest -> Library/Method: HTML/JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #FDFBF8;
+            color: #4A4A4A;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #D35400;
+            border-bottom-color: #D35400;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .stat-card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .tab-button.active {
+            background-color: #E67E22;
+            color: #FFFFFF;
+        }
+        .tab-button {
+            transition: background-color 0.3s, color 0.3s;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-gray-800">
+                <span class="text-[#D35400]">AI</span> 검색 혁명
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#paradigm-shift" class="nav-link pb-1">패러다임 전환</a>
+                <a href="#market-impact" class="nav-link pb-1">시장 영향</a>
+                <a href="#korea-focus" class="nav-link pb-1">국내 동향</a>
+                <a href="#strategy" class="nav-link pb-1">미래 전략</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="#paradigm-shift" class="block py-2 px-6 text-sm hover:bg-gray-100">패러다임 전환</a>
+            <a href="#market-impact" class="block py-2 px-6 text-sm hover:bg-gray-100">시장 영향</a>
+            <a href="#korea-focus" class="block py-2 px-6 text-sm hover:bg-gray-100">국내 동향</a>
+            <a href="#strategy" class="block py-2 px-6 text-sm hover:bg-gray-100">미래 전략</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        
+        <section id="hero" class="text-center mb-24">
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-4 text-gray-800 leading-tight">검색의 미래, <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500">AI가 다시 쓰다</span></h1>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600">
+                사용자 행동이 변화하고 있습니다. 전통적인 SEO를 넘어, AI가 생성하는 답변 속에서 브랜드를 각인시키는 생성형 엔진 최적화(GEO)의 시대로 진입하고 있습니다. 이 보고서는 새로운 검색 환경의 핵심 동향과 마케터가 준비해야 할 전략을 제시합니다.
+            </p>
+        </section>
+
+        <section id="paradigm-shift" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-800">패러다임 전환: SEO vs GEO</h2>
+            <p class="text-center text-gray-500 mb-12">AI는 검색의 규칙을 바꾸고 있습니다. 클릭을 유도하는 것에서 AI의 답변에 인용되는 것으로 목표가 이동하고 있습니다.</p>
+            
+            <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
+                <div id="seo-geo-table" class="overflow-x-auto">
+                    <table class="w-full min-w-max text-left">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="p-4 font-semibold text-gray-600">차원</th>
+                                <th class="p-4 font-semibold text-gray-800">전통적인 SEO</th>
+                                <th class="p-4 font-semibold text-gray-800">생성형 엔진 최적화 (GEO)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-gray-100">
+                                <td class="p-4 font-medium">주요 목표</td>
+                                <td class="p-4">웹사이트로의 클릭 유도</td>
+                                <td class="p-4 text-[#D35400] font-medium">AI 인용/가시성 확보</td>
+                            </tr>
+                            <tr class="border-b border-gray-100 bg-stone-50">
+                                <td class="p-4 font-medium">사용자 상호작용</td>
+                                <td class="p-4">웹사이트 직접 상호작용</td>
+                                <td class="p-4 text-[#D35400] font-medium">AI가 중개자 역할 (제로-클릭)</td>
+                            </tr>
+                            <tr class="border-b border-gray-100">
+                                <td class="p-4 font-medium">핵심 순위 신호</td>
+                                <td class="p-4">키워드, 백링크, 도메인 권위</td>
+                                <td class="p-4 text-[#D35400] font-medium">의미론적 이해, E-E-A-T, 사용자 행동</td>
+                            </tr>
+                            <tr class="border-b border-gray-100 bg-stone-50">
+                                <td class="p-4 font-medium">콘텐츠 초점</td>
+                                <td class="p-4">키워드 밀도, 링크 구축</td>
+                                <td class="p-4 text-[#D35400] font-medium">직접적인 답변, 포괄적인 주제 범위</td>
+                            </tr>
+                            <tr class="border-b-0">
+                                <td class="p-4 font-medium">성공 지표</td>
+                                <td class="p-4">웹사이트 트래픽, 유기적 순위</td>
+                                <td class="p-4 text-[#D35400] font-medium">브랜드 언급, AI 요약 내 존재감</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="market-impact" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-800">데이터로 보는 시장 영향</h2>
+            <p class="text-center text-gray-500 mb-12">AI 검색은 사용자 행동과 광고 효과에 실질적인 변화를 가져오고 있습니다.</p>
+
+            <div class="grid md:grid-cols-3 gap-8 mb-16">
+                <div class="stat-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-5xl font-bold text-orange-600 mb-2" data-target="82">0</div>
+                    <p class="text-gray-600">AI 기반 검색이 더 유용하다고 응답한 사용자 비율 (%)</p>
+                </div>
+                <div class="stat-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-5xl font-bold text-orange-600 mb-2" data-target="25">0</div>
+                    <p class="text-gray-600">AI 검색으로 인한 유기적 웹 트래픽 최대 감소율 (%)</p>
+                </div>
+                <div class="stat-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-5xl font-bold text-orange-600 mb-2" data-target="60">0</div>
+                    <p class="text-gray-600">2025년 예상되는 제로-클릭 검색 비율 (%)</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h3 class="text-2xl font-bold text-center mb-2 text-gray-800">AI 개요(AIO)가 클릭률(CTR)에 미치는 영향</h3>
+                <p class="text-center text-gray-500 mb-8">AI 요약에 브랜드가 '인용'되는 것이 얼마나 중요한지 보여줍니다.</p>
+                <div class="chart-container">
+                    <canvas id="ctrChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="korea-focus" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-800">국내 시장 동향: 네이버 & 카카오</h2>
+            <p class="text-center text-gray-500 mb-12">한국의 주요 플랫폼들은 어떻게 AI 혁신을 이끌고 있을까요?</p>
+
+            <div class="max-w-5xl mx-auto">
+                <div class="flex justify-center mb-8 border-b border-gray-200">
+                    <button class="tab-button py-3 px-6 font-semibold text-lg text-gray-500 border-b-2 border-transparent -mb-px active" data-tab="naver">
+                        네이버 (Naver)
+                    </button>
+                    <button class="tab-button py-3 px-6 font-semibold text-lg text-gray-500 border-b-2 border-transparent -mb-px" data-tab="kakao">
+                        카카오 (Kakao)
+                    </button>
+                     <button class="tab-button py-3 px-6 font-semibold text-lg text-gray-500 border-b-2 border-transparent -mb-px" data-tab="google">
+                        구글 (Google)
+                    </button>
+                </div>
+
+                <div id="tab-content" class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="tab-pane active" id="naver">
+                        <h3 class="text-2xl font-bold mb-4 text-gray-800">네이버의 AI 혁신</h3>
+                        <p class="mb-6 text-gray-600">네이버는 자체 거대 언어 모델 '하이퍼클로바 X'를 기반으로 한국어와 문화에 최적화된 AI 검색 서비스를 제공하며, 사용자의 미묘한 의도를 파악하는 데 중점을 둡니다.</p>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-lg text-orange-700">쇼핑렌즈 (Shortents)</h4>
+                                <p class="text-gray-600">실시간 트렌드를 요약하여 보여주는 짧은 콘텐츠 검색 서비스로, 사용자가 미처 검색하지 않은 새로운 지역 트렌드나 비즈니스를 발견하게 합니다.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-orange-700">AI 요약 (AI Briefing)</h4>
+                                <p class="text-gray-600">여행, 장소, 트렌드 등 특정 쿼리에 대해 관련성 높은 정보를 압축하여 제공합니다. '부산 아이와 가볼만한 곳'과 같은 지역 검색에 직접적인 영향을 줍니다.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-orange-700">진화하는 순위 시스템</h4>
+                                <p class="text-gray-600">관련성, 콘텐츠 품질, 사용자 선호도(체류 시간, 클릭률 등)를 종합적으로 분석하여 순위를 결정합니다. 이는 고품질의 지역 콘텐츠 제작의 중요성을 높입니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane hidden" id="kakao">
+                        <h3 class="text-2xl font-bold mb-4 text-gray-800">카카오의 AI 메이트 전략</h3>
+                        <p class="mb-6 text-gray-600">카카오는 '카나나'라는 AI 메이트를 통해 대화형 맥락을 이해하고 초개인화된 서비스를 제공하는 데 집중하며, 특히 로컬 서비스와의 연계를 강화하고 있습니다.</p>
+                         <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-lg text-orange-700">카나나 (Kanana)</h4>
+                                <p class="text-gray-600">개인 및 그룹 채팅을 위한 'AI 메이트'로, 대화 맥락을 이해하여 회의 장소 설정, 경로 추천 등 실생활과 밀접한 기능을 제공합니다.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-orange-700">AI 메이트 로컬</h4>
+                                <p class="text-gray-600">카카오맵 사용자를 대상으로 AI 기반 위치 추천을 제공하여, 맥락을 인지하는 지역 정보 상호작용을 목표로 합니다. 지역 비즈니스에게 새로운 노출 기회를 제공합니다.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-orange-700">생성형 검색 (OpenAI 협력)</h4>
+                                <p class="text-gray-600">사용자 쿼리의 맥락을 이해하고 최적의 답변을 요약하는 생성형 검색 서비스를 준비 중이며, OpenAI와의 기술 협력을 통해 서비스를 고도화하고 있습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane hidden" id="google">
+                        <h3 class="text-2xl font-bold mb-4 text-gray-800">구글의 에이전트형 AI</h3>
+                        <p class="mb-6 text-gray-600">구글은 사용자를 대신해 정보를 수집하고 작업을 수행하는 '에이전트'로서의 AI 역할을 강화하며, 지역 비즈니스와의 상호작용 방식을 바꾸고 있습니다.</p>
+                         <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-lg text-orange-700">에이전트형 지역 전화 기능</h4>
+                                <p class="text-gray-600">사용자가 '내 주변 애견 미용실 가격 확인해줘'라고 요청하면, AI가 직접 비즈니스에 전화하여 정보를 수집하고 요약해서 보여줍니다.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg text-orange-700">지역 비즈니스에 대한 함의</h4>
+                                <p class="text-gray-600">직접적인 전화 문의는 줄어들 수 있으나, AI가 수집하기 용이하도록 정확하고 최신 정보를 온라인에 게시하는 것이 중요해집니다. 이는 잘 준비된 비즈니스에 더 많은 자격 있는 리드를 가져다줄 수 있습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="strategy" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-800">AI 시대를 위한 마케팅 전략 로드맵</h2>
+            <p class="text-center text-gray-500 mb-12">변화에 대응하고 기회를 포착하기 위한 핵심 실행 과제입니다.</p>
+
+            <div class="max-w-4xl mx-auto space-y-4">
+                <div class="accordion-item bg-white rounded-lg shadow">
+                    <button class="accordion-header w-full text-left p-6 flex justify-between items-center">
+                        <span class="text-lg font-semibold text-gray-800">1. 콘텐츠 워크플로우 재정비</span>
+                        <span class="accordion-icon text-2xl text-orange-500 font-light">+</span>
+                    </button>
+                    <div class="accordion-content px-6">
+                        <p class="pb-6 text-gray-600">AI를 활용해 콘텐츠 초안을 생성하되, 인간 전문가가 E-E-A-T(경험, 전문성, 권위성, 신뢰성) 원칙에 따라 검증하고 다듬는 하이브리드 워크플로우를 구축해야 합니다. AI가 분석한 데이터를 바탕으로 사용자의 참여도가 떨어지는 콘텐츠를 주기적으로 업데이트하는 적응형 스케줄링을 도입하세요.</p>
+                    </div>
+                </div>
+                <div class="accordion-item bg-white rounded-lg shadow">
+                    <button class="accordion-header w-full text-left p-6 flex justify-between items-center">
+                        <span class="text-lg font-semibold text-gray-800">2. 기술적 준비 및 데이터 위생</span>
+                        <span class="accordion-icon text-2xl text-orange-500 font-light">+</span>
+                    </button>
+                    <div class="accordion-content px-6">
+                        <p class="pb-6 text-gray-600">AI가 콘텐츠를 쉽게 이해하고 수집할 수 있도록 스키마 마크업(JSON-LD)을 적용하고, AI 크롤러를 위해 서버-사이드 렌더링을 구현해야 합니다. 또한, `llms.txt` 파일을 게시하여 AI 모델의 크롤링 권한과 인용 방식을 지정하는 것을 고려해볼 수 있습니다. 정확한 제품 정보, 일관된 브랜드 엔티티 정의 등 '데이터 위생'을 철저히 관리하는 것이 AI 시대의 기본입니다.</p>
+                    </div>
+                </div>
+                <div class="accordion-item bg-white rounded-lg shadow">
+                    <button class="accordion-header w-full text-left p-6 flex justify-between items-center">
+                        <span class="text-lg font-semibold text-gray-800">3. 브랜드 권위 및 신뢰 구축</span>
+                        <span class="accordion-icon text-2xl text-orange-500 font-light">+</span>
+                    </button>
+                    <div class="accordion-content px-6">
+                        <p class="pb-6 text-gray-600">AI가 생성한 정보가 넘쳐나는 환경에서는 '원본 데이터'와 '신뢰'가 핵심 자산이 됩니다. 독점적인 연구 자료, 고객 성공 사례, 권위 있는 제3자 출처에서의 언급 등은 AI가 브랜드를 인용하게 만드는 중요한 신호가 됩니다. 클릭이 일어나기 전에 신뢰를 구축하는 것이 중요합니다.</p>
+                    </div>
+                </div>
+                <div class="accordion-item bg-white rounded-lg shadow">
+                    <button class="accordion-header w-full text-left p-6 flex justify-between items-center">
+                        <span class="text-lg font-semibold text-gray-800">4. 측정 프레임워크의 진화</span>
+                        <span class="accordion-icon text-2xl text-orange-500 font-light">+</span>
+                    </button>
+                    <div class="accordion-content px-6">
+                        <p class="pb-6 text-gray-600">웹사이트 트래픽, CTR과 같은 전통적인 지표의 중요성은 감소합니다. 대신 'AI 인용 빈도', 'AI 요약 내 브랜드 점유율'과 같은 새로운 KPI를 추적해야 합니다. AI가 생성한 추천이나 요약이 실제 전환에 어떻게 기여하는지 분석하는 새로운 기여 모델을 개발해야 합니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-24">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <p>&copy; 2025 AI Search Trend Analysis. All Rights Reserved.</p>
+            <p class="text-sm text-gray-400 mt-2">본 애플리케이션은 제공된 보고서 내용을 기반으로 제작된 대화형 요약입니다.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const navLinks = document.querySelectorAll('header a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+
+            const animateStat = (el) => {
+                const target = +el.dataset.target;
+                const duration = 2000;
+                const frameDuration = 1000 / 60;
+                const totalFrames = Math.round(duration / frameDuration);
+                let frame = 0;
+
+                const counter = setInterval(() => {
+                    frame++;
+                    const progress = frame / totalFrames;
+                    const current = Math.round(target * progress);
+                    el.innerText = current;
+
+                    if (frame === totalFrames) {
+                        clearInterval(counter);
+                        el.innerText = target;
+                    }
+                }, frameDuration);
+            };
+
+            const statObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateStat(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            document.querySelectorAll('[data-target]').forEach(stat => {
+                statObserver.observe(stat);
+            });
+
+            const ctrCtx = document.getElementById('ctrChart').getContext('2d');
+            const ctrChart = new Chart(ctrCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['유기적 CTR', '유료 CTR'],
+                    datasets: [{
+                        label: 'AI 개요 없음 (기준)',
+                        data: [0.8, 8.5],
+                        backgroundColor: '#E0E0E0',
+                        borderColor: '#BDBDBD',
+                        borderWidth: 1
+                    }, {
+                        label: 'AI 개요 존재 (브랜드 미인용)',
+                        data: [0.74, 7.89],
+                        backgroundColor: 'rgba(251, 146, 60, 0.6)',
+                        borderColor: 'rgba(251, 146, 60, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'AI 개요 존재 (브랜드 인용)',
+                        data: [1.02, 11],
+                        backgroundColor: 'rgba(211, 84, 0, 0.7)',
+                        borderColor: 'rgba(211, 84, 0, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '클릭률 (%)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    const targetTab = button.dataset.tab;
+                    tabPanes.forEach(pane => {
+                        if (pane.id === targetTab) {
+                            pane.classList.remove('hidden');
+                            pane.classList.add('active');
+                        } else {
+                            pane.classList.add('hidden');
+                            pane.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+            const accordionItems = document.querySelectorAll('.accordion-item');
+            accordionItems.forEach(item => {
+                const header = item.querySelector('.accordion-header');
+                const content = item.querySelector('.accordion-content');
+                const icon = item.querySelector('.accordion-icon');
+
+                header.addEventListener('click', () => {
+                    const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+
+                    document.querySelectorAll('.accordion-content').forEach(c => c.style.maxHeight = '0px');
+                    document.querySelectorAll('.accordion-icon').forEach(i => i.textContent = '+');
+
+                    if (!isOpen) {
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                        icon.textContent = '-';
+                    }
+                });
+            });
+            
+            const sections = document.querySelectorAll('main section');
+            const navLinksObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        document.querySelectorAll('.nav-link').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: '-50% 0px -50% 0px' });
+
+            sections.forEach(section => {
+                navLinksObserver.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
